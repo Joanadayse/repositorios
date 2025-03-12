@@ -26,24 +26,22 @@ svg{
 
 `;
 
-export const Form= styled.form`
-margin-top: 30px;
-display: flex;
-flex-direction: row;
+export const Form = styled.form`
+  margin-top: 30px;
+  display: flex;
+  flex-direction: row;
 
-
-input{
+  /* input {
     flex: 1;
-    border:  1px solid #ddd;
-    padding:  10px 15px;
+    border: 1px solid #ddd;
+    padding: 10px 15px;
     border-radius: 4px;
-    font-size: 17px
-}
+    font-size: 17px;
+  }
 
-
-
-
-
+  .error {
+    border: red;
+  } */
 `;
 
 export const SubmitButton= styled.button.attrs({
@@ -98,4 +96,12 @@ export const DeleteButton = styled.button.attrs({
   padding:8px 7px;
   outline:0;
   border-radius:4px;
+`;
+
+export const Input = styled.input`
+  flex: 1;
+   border: 1px solid ${props => props.error ? "#FF0000" : "#eee"};
+  padding: 10px 15px;
+  border-radius: 4px;
+  font-size: 17px;
 `;
