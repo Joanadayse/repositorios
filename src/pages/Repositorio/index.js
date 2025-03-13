@@ -5,9 +5,11 @@ import api from "../../services/api"
 
 export default function Repositorio() {
   const { repositorio } = useParams();
+   
   const [repo , setRepo]= useState({});
   const [issues, setIssues] = useState([]);
   const [loading,setLoading]=useState(true);
+  const [error,setError]= useState(null);
 
   useEffect(() => {
     async function loadData(params) {
@@ -19,11 +21,12 @@ export default function Repositorio() {
           api.get(`/repos/${nomeRepo}/issues`, {
             params: {
               state: "open",
-              per_page: 5,
+              per_page: 10,
             },
           }),
         ]);
   setRepo(repoResponse.data);
+ 
   setIssues(issuesResponse.data);
   setLoading(false)
         console.log("Repositório:", repoResponse.data);
@@ -40,6 +43,9 @@ export default function Repositorio() {
       loadData();
     }
   }, [repositorio]);
+
+
+ 
 
    
   return (
