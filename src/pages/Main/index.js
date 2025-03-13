@@ -19,14 +19,38 @@ const [loading ,setLoading]= useState(false);
 const [alert , setAlert]= useState(null);
 
 useEffect(()=>{
-    const repoStorage = localStorage.getItem("repo");
-    if (repoStorage) {
-      setRepositorios(JSON.parse(repoStorage))
-    }
+    const loadRepos = async () => {
+      const saved = localStorage.getItem("repos");
+      if (saved) {
+        const reposData = JSON.parse(saved);
+        // Verifica e atualiza dados desatualizados
+        const updatedRepos = await Promise.all(
+          reposData.map(async (repo) => {
+            try {
+              const response = await api.get(`repos/${repo.name}`);
+              return response.data;
+            } catch {
+              return repo; // Mantém o antigo se der erro
+            }
+          })
+        );
+        setRepositorios(updatedRepos);
+      }
+    };
+    loadRepos();
 },[])
 
 useEffect(() => {
-  localStorage.setItem("repo", JSON.stringify(repositorios));
+   localStorage.setItem(
+     "repos",
+     JSON.stringify(
+       repositorios.map((repo) => ({
+         name: repo.name,
+         owner: repo.owner?.login, // Adicione esta linha
+         avatar_url: repo.owner?.avatar_url, // E esta
+       }))
+     )
+   );
 }, [repositorios]);
 
 
@@ -42,6 +66,13 @@ setAlert(null);
     }
     
     const response = await api.get(`repos/${newRepo}`);
+    // const data = {
+    //   name: response.data.full_name,
+    //   owner: {
+    //     login: response.data.owner.login,
+    //     avatar_url: response.data.owner.avatar_url,
+    //   },
+    // };
 
     const hasrepo= repositorios.find(repo => repo.name === newRepo);
 
@@ -109,14 +140,15 @@ const handleDelete = useCallback((repo)=>{
           ) : (
             <FaPlus color="#FFF" size={14} />
           )}
-
-          
         </SubmitButton>
       </Form>
 
       <List>
+
+
         {repositorios.map((repo) => (
           <li key={repo.name}>
+           
             <span>
               <DeleteButton onClick={() => handleDelete(repo.name)}>
                 <FaTrash size={14} />
