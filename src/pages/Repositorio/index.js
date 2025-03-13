@@ -1,16 +1,23 @@
 import { useParams } from "react-router-dom";
-import { Container, Loading, Owner, Backbutton, IssuesList } from "./styled";
+import {
+  Container,
+  Loading,
+  Owner,
+  Backbutton,
+  IssuesList,
+  PageActions,
+} from "./styled";
 import { useEffect, useState } from "react";
-import api from "../../services/api"
+import api from "../../services/api";
 import { FaArrowLeft } from "react-icons/fa";
 
 export default function Repositorio() {
   const { repositorio } = useParams();
-   
-  const [repo , setRepo]= useState({});
+
+  const [repo, setRepo] = useState({});
   const [issues, setIssues] = useState([]);
-  const [loading,setLoading]=useState(true);
-  const [error,setError]= useState(null);
+  const [loading, setLoading] = useState(true);
+  const [page , setPage]= useState(1);
 
   useEffect(() => {
     async function loadData(params) {
@@ -26,10 +33,10 @@ export default function Repositorio() {
             },
           }),
         ]);
-  setRepo(repoResponse.data);
- 
-  setIssues(issuesResponse.data);
-  setLoading(false)
+        setRepo(repoResponse.data);
+
+        setIssues(issuesResponse.data);
+        setLoading(false);
         console.log("Repositório:", repoResponse.data);
         console.log("Issues:", issuesResponse.data);
       } catch (error) {
@@ -45,16 +52,48 @@ export default function Repositorio() {
     }
   }, [repositorio]);
 
+useEffect(() => {
+  async function loadIssue() {
+    try {
+      setLoading(true); // Ativa loading durante a requisição
+      const nomeRepo = decodeURIComponent(repositorio);
 
- if(loading){
-return (
-  <Loading>
-    <h1>Carregando...</h1>
-  </Loading>
-)
- }
+      const response = await api.get(`/repos/${nomeRepo}/issues`, {
+        params: {
+          state: "open",
+          page,
+          per_page: 5,
+        },
+      });
 
-   
+      setIssues(response.data);
+    } catch (error) {
+      console.error("Erro ao carregar issues:", error);
+    } finally {
+      setLoading(false); // Desativa loading independente do resultado
+    }
+  }
+
+  loadIssue(); // Adicione esta linha para executar a função
+}, [repositorio, page]);
+
+function handlePage(action) {
+  setPage((prev) => {
+    if (action === "back" && prev > 1) return prev - 1;
+    if (action === "next") return prev + 1;
+    return prev; // Impede página negativa
+  });
+}
+
+
+  if (loading) {
+    return (
+      <Loading>
+        <h1>Carregando...</h1>
+      </Loading>
+    );
+  }
+
   return (
     <>
       <Container>
@@ -71,22 +110,38 @@ return (
         <IssuesList>
           {issues.map((issue) => (
             <li key={String(issue.id)}>
- <img src={issue.user.avatar_url} alt={issue.user.login}/>
- <div>
-  <strong>
-    <a href={issue.html_url} >{issue.title}</a>
-    {issue.labels.map(label=>(
-      <span key={String(label.id)}>{label.name}</span>
-    ))}
-  </strong>
+              <img src={issue.user.avatar_url} alt={issue.user.login} />
+              <div>
+                <strong>
+                  <a href={issue.html_url}>{issue.title}</a>
+                  {issue.labels.map((label) => (
+                    <span key={String(label.id)}>{label.name}</span>
+                  ))}
+                </strong>
 
-  <p>{issue.user.login}</p>
- </div>
-
+                <p>{issue.user.login}</p>
+              </div>
             </li>
-           
           ))}
         </IssuesList>
+
+        <PageActions>
+          <button
+            type="button"
+            onClick={() => handlePage("back")}
+            disabled={page < 2} // Desativa botão na primeira página
+          >
+            Voltar
+          </button>
+          <span>Página {page}</span> {/* Exibe página atual */}
+          <button
+            type="button"
+            onClick={() => handlePage("next")}
+            disabled={issues.length < 5} // Desativa se não houver mais itens
+          >
+            Próxima
+          </button>
+        </PageActions>
       </Container>
       ;
     </>
