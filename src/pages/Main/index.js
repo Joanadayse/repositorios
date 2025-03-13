@@ -1,4 +1,4 @@
-import {  FaBars, FaGithub, FaPlus, FaTrash } from "react-icons/fa";
+import {  FaBars, FaGithub, FaPlus, FaSpinner, FaTrash } from "react-icons/fa";
 import {
   Container,
   Form,
@@ -99,11 +99,18 @@ const handleDelete = useCallback((repo)=>{
           value={newRepo}
           onChange={handleInputChange}
           error={alert}
-          
         />
 
-        <SubmitButton>
-          <FaPlus color="#fff" size={14} />
+        <SubmitButton loading={loading ? 1 : 0}>
+          {/* <FaPlus color="#fff" size={14} /> */}
+
+          {loading ? (
+            <FaSpinner color="#FFF" size={14} />
+          ) : (
+            <FaPlus color="#FFF" size={14} />
+          )}
+
+          
         </SubmitButton>
       </Form>
 
@@ -116,7 +123,7 @@ const handleDelete = useCallback((repo)=>{
               </DeleteButton>
               {repo.name}
             </span>
-            <Link to={`/repositorio/${ encodeURIComponent(repo.name)}`}>
+            <Link to={`/repositorio/${encodeURIComponent(repo.name)}`}>
               <FaBars size={20} />
             </Link>
           </li>
