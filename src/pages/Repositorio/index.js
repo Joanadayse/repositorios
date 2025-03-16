@@ -129,15 +129,6 @@ function handleFilter(index){
           </Owner>
         )}
 
-        {/* <Owner>
-          {repo.owner && (
-            <>
-              <img src={repo.owner.avatar_url} alt={repo.owner.login} />
-              <h1>{repo.name}</h1>
-              <p>{repo.description}</p>
-            </>
-          )}
-        </Owner> */}
 
         <FilterList active={filterIndex}>
           {filters.map((filter, index) => (
@@ -179,11 +170,11 @@ function handleFilter(index){
           >
             Voltar
           </button>
-          <span>Página {page}</span> {/* Exibe página atual */}
+          <span>Página {page}</span> 
           <button
             type="button"
             onClick={() => handlePage("next")}
-            disabled={issues.length < 5} // Desativa se não houver mais itens
+            disabled={issues.length < 5}
           >
             Próxima
           </button>

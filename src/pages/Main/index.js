@@ -45,40 +45,7 @@ const [alert , setAlert]= useState(null);
 }, []);
 
 
-// useEffect(()=>{
-//     const loadRepos = async () => {
-//       const saved = localStorage.getItem("repos");
-//       if (saved) {
-//         const reposData = JSON.parse(saved);
-//         // Verifica e atualiza dados desatualizados
-//         const updatedRepos = await Promise.all(
-//           reposData.map(async (repo) => {
-//             try {
-//               const response = await api.get(`repos/${repo.name}`);
-//               return response.data;
-//             } catch {
-//               return repo; // Mantém o antigo se der erro
-//             }
-//           })
-//         );
-//         setRepositorios(updatedRepos);
-//       }
-//     };
-//     loadRepos();
-// },[])
 
-// useEffect(() => {
-//    localStorage.setItem(
-//      "repos",
-//      JSON.stringify(
-//        repositorios.map((repo) => ({
-//          name: repo.name,
-//          owner: repo.owner?.login, // Adicione esta linha
-//          avatar_url: repo.owner?.avatar_url, // E esta
-//        }))
-//      )
-//    );
-// }, [repositorios]);
 
 useEffect(() => {
   localStorage.setItem("repos", JSON.stringify(repositorios));
