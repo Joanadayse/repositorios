@@ -18,91 +18,127 @@ const [repositorios , setRepositorios]= useState([]);
 const [loading ,setLoading]= useState(false);
 const [alert , setAlert]= useState(null);
 
-useEffect(()=>{
-    const loadRepos = async () => {
-      const saved = localStorage.getItem("repos");
-      if (saved) {
-        const reposData = JSON.parse(saved);
-        // Verifica e atualiza dados desatualizados
-        const updatedRepos = await Promise.all(
-          reposData.map(async (repo) => {
-            try {
-              const response = await api.get(`repos/${repo.name}`);
-              return response.data;
-            } catch {
-              return repo; // Mantém o antigo se der erro
-            }
-          })
-        );
-        setRepositorios(updatedRepos);
-      }
-    };
-    loadRepos();
-},[])
+
+ useEffect(() => {
+  const loadRepos = async () => {
+    const saved = localStorage.getItem("repos");
+    if (saved) {
+      const reposData = JSON.parse(saved);
+
+      const updatedRepos = await Promise.all(
+        reposData.map(async (repo) => {
+          try {
+            const response = await api.get(`repos/${repo.name}`);
+            return response.data;
+          } catch (error) {
+            console.error(`Erro ao buscar ${repo.name}:`, error);
+            return repo; // Mantém o repo salvo, mesmo sem atualização
+          }
+        })
+      );
+
+      setRepositorios(updatedRepos);
+    }
+  };
+
+  loadRepos();
+}, []);
+
+
+// useEffect(()=>{
+//     const loadRepos = async () => {
+//       const saved = localStorage.getItem("repos");
+//       if (saved) {
+//         const reposData = JSON.parse(saved);
+//         // Verifica e atualiza dados desatualizados
+//         const updatedRepos = await Promise.all(
+//           reposData.map(async (repo) => {
+//             try {
+//               const response = await api.get(`repos/${repo.name}`);
+//               return response.data;
+//             } catch {
+//               return repo; // Mantém o antigo se der erro
+//             }
+//           })
+//         );
+//         setRepositorios(updatedRepos);
+//       }
+//     };
+//     loadRepos();
+// },[])
+
+// useEffect(() => {
+//    localStorage.setItem(
+//      "repos",
+//      JSON.stringify(
+//        repositorios.map((repo) => ({
+//          name: repo.name,
+//          owner: repo.owner?.login, // Adicione esta linha
+//          avatar_url: repo.owner?.avatar_url, // E esta
+//        }))
+//      )
+//    );
+// }, [repositorios]);
 
 useEffect(() => {
-   localStorage.setItem(
-     "repos",
-     JSON.stringify(
-       repositorios.map((repo) => ({
-         name: repo.name,
-         owner: repo.owner?.login, // Adicione esta linha
-         avatar_url: repo.owner?.avatar_url, // E esta
-       }))
-     )
-   );
+  localStorage.setItem("repos", JSON.stringify(repositorios));
 }, [repositorios]);
 
 
-const handleSubmit= useCallback((e)=>{
- e.preventDefault();
- async function submit(params) {
-setLoading(true);
-setAlert(null);
-  try{
+console.log(repositorios)
 
-    if(newRepo === ""){
-      throw new Error ("Voce precisa indicar um repositorio")
+const handleSubmit = useCallback(
+  (e) => {
+    e.preventDefault();
+
+    async function submit() {
+      setLoading(true);
+      setAlert(null);
+
+      try {
+        if (newRepo.trim() === "") {
+          throw new Error("Você precisa indicar um repositório.");
+        }
+
+    const response = await api.get(`/repos/${newRepo}`);
+
+
+
+        const data = {
+          name: response.data.full_name,
+          owner: response.data.owner.login,
+          avatar_url: response.data.owner.avatar_url,
+        };
+
+   const hasRepo = repositorios.some(
+     (repo) => repo.name.toLowerCase() === newRepo.toLowerCase()
+   );
+
+   if (hasRepo) {
+     setAlert("Repositório já adicionado!");
+     return;
+   }
+
+        setRepositorios((prevRepos) => {
+          const updatedRepos = [...prevRepos, data];
+          localStorage.setItem("repos", JSON.stringify(updatedRepos)); // Salvar no localStorage imediatamente
+          return updatedRepos;
+        });
+
+        setnewRepo("");
+      } catch (error) {
+        setAlert(true);
+        console.log("Erro:", error.message);
+      } finally {
+        setLoading(false);
+      }
     }
-    
-    const response = await api.get(`repos/${newRepo}`);
-    // const data = {
-    //   name: response.data.full_name,
-    //   owner: {
-    //     login: response.data.owner.login,
-    //     avatar_url: response.data.owner.avatar_url,
-    //   },
-    // };
 
-    const hasrepo= repositorios.find(repo => repo.name === newRepo);
+    submit();
+  },
+  [newRepo, repositorios]
+);
 
-    if(hasrepo){
-      throw new Error ("Repositorio Duplicado ! ")
-    }
-
-   console.log(response.data);
-
-   const data = {
-     name: response.data.full_name,
-   };
-
-   setRepositorios([...repositorios, data]);
-   setnewRepo("");
-
-  }catch(error){
-    setAlert(true)
-    console.log(error);
-
-  } finally{
-    setLoading(false);
-
-  }
-
-  
- }
-
- submit();
-}, [newRepo , repositorios])
  
  
 
@@ -123,7 +159,7 @@ const handleDelete = useCallback((repo)=>{
         Meus Repositorios
       </h1>
 
-      <Form onSubmit={handleSubmit} error={alert}>
+      <Form onSubmit={handleSubmit} error={!!alert}>
         <Input
           type="text"
           placeholder="Adicionar repositorio"

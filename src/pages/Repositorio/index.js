@@ -6,6 +6,7 @@ import {
   Backbutton,
   IssuesList,
   PageActions,
+  FilterList,
 } from "./styled";
 import { useEffect, useState } from "react";
 import api from "../../services/api";
@@ -14,21 +15,34 @@ import { FaArrowLeft } from "react-icons/fa";
 export default function Repositorio() {
   const { repositorio } = useParams();
 
-  const [repo, setRepo] = useState({});
+  const [repo, setRepo] = useState({
+    owner: { avatar_url: "", login: "" },
+    name: "",
+    description: "",
+  });
+
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page , setPage]= useState(1);
+  const [filters, setFilters] = useState([
+    { state: "all", label: "Todas", active: true },
+    { state: "open", label: "Abertas", active: false },
+    { state: "closed", label: "Fechadas", active: false },
+  ]);
+
+  const [filterIndex, setFilterIndex]= useState(0);
 
   useEffect(() => {
     async function loadData(params) {
       try {
         const nomeRepo = decodeURIComponent(repositorio);
+       
 
         const [repoResponse, issuesResponse] = await Promise.all([
           api.get(`/repos/${nomeRepo}`),
           api.get(`/repos/${nomeRepo}/issues`, {
             params: {
-              state: "open",
+              state: filters.find(f => f.active).state,
               per_page: 5,
             },
           }),
@@ -60,7 +74,7 @@ useEffect(() => {
 
       const response = await api.get(`/repos/${nomeRepo}/issues`, {
         params: {
-          state: "open",
+          state: filters[filterIndex].state,
           page,
           per_page: 5,
         },
@@ -75,7 +89,7 @@ useEffect(() => {
   }
 
   loadIssue(); // Adicione esta linha para executar a função
-}, [repositorio, page]);
+}, [filterIndex,filters, repositorio, page]);
 
 function handlePage(action) {
   setPage((prev) => {
@@ -84,6 +98,12 @@ function handlePage(action) {
     return prev; // Impede página negativa
   });
 }
+
+function handleFilter(index){
+  setFilterIndex(index)
+
+}
+
 
 
   if (loading) {
@@ -100,12 +120,38 @@ function handlePage(action) {
         <Backbutton to="/">
           <FaArrowLeft color="#000" size={30} />
         </Backbutton>
-        <Owner>
-          <img src={repo.owner.avatar_url} alt={repo.owner.login} />
-          <h1>{repo.name}</h1>
 
-          <p>{repo.description}</p>
-        </Owner>
+        {repo && repo.owner && (
+          <Owner>
+            <img src={repo.owner.avatar_url} alt={repo.owner.login} />
+            <h1>{repo.name}</h1>
+            <p>{repo.description}</p>
+          </Owner>
+        )}
+
+        {/* <Owner>
+          {repo.owner && (
+            <>
+              <img src={repo.owner.avatar_url} alt={repo.owner.login} />
+              <h1>{repo.name}</h1>
+              <p>{repo.description}</p>
+            </>
+          )}
+        </Owner> */}
+
+        <FilterList active={filterIndex}>
+          {filters.map((filter, index) => (
+            <button
+              type="button"
+              key={filter.label}
+              onClick={() => {
+                handleFilter(index);
+              }}
+            >
+              {filter.label}
+            </button>
+          ))}
+        </FilterList>
 
         <IssuesList>
           {issues.map((issue) => (

@@ -134,3 +134,26 @@ export const Input = styled.input`
   border-radius: 4px;
   font-size: 17px;
 `;
+
+export const ErrorBox = styled.div`
+  padding: 12px;
+  background: #fff4e6;
+  border: 2px solid #ff922b;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 20px 0;
+  animation: fadeIn 0.3s ease-in;
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+`;
